@@ -62,10 +62,10 @@ resource "azurerm_network_security_group" "web-sg" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range          = "80"
-    destination_port_range     = "80"
-    source_address_prefix      = "[0.0.0.0/0]"
-    destination_address_prefix = "[0.0.0.0/0]"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
   }
 
   tags = {
@@ -84,8 +84,10 @@ resource "azurerm_network_security_group" "app-sg" {
     direction              = "Inbound"
     access                 = "Allow"
     protocol               = "Tcp"
-    source_port_range      = "80"
-    destination_port_range = "80"
+    source_port_range      = "*"
+    destination_port_range = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
   }
 
   tags = {
@@ -104,8 +106,8 @@ resource "azurerm_network_security_group" "db-sg" {
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
-    source_port_range          = "3306"
-    destination_port_range     = "3306"
+    source_port_range          = "*"
+    destination_port_range     = "*"
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
@@ -159,14 +161,13 @@ resource "azurerm_network_interface" "web-nic" {
 }
 
 resource "azurerm_linux_virtual_machine" "web-server" {
-  name                = "web-server"
-  resource_group_name = azurerm_resource_group.project-rg.name
-  location            = azurerm_resource_group.project-rg.location
-  size                = "Standard_B1s"
-  admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.web-nic.id,
-  ]
+  name                  = "web-server"
+  resource_group_name   = azurerm_resource_group.project-rg.name
+  location              = azurerm_resource_group.project-rg.location
+  size                  = "Standard_B1s"
+  admin_username        = "adminuser"
+  network_interface_ids = [azurerm_network_interface.web-nic.id]
+  custom_data           = filebase64("install_apache.sh")
 
   admin_ssh_key {
     username   = "adminuser"
@@ -181,7 +182,7 @@ resource "azurerm_linux_virtual_machine" "web-server" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "22.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
